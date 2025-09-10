@@ -1,5 +1,6 @@
-def addFunc(par1, par2):
-    sum = par1 + par2
-    return sum
+def average_of_three(par1, par2, par3):
+    sum = par1 + par2 + par3
+    average = sum/3
+    return average
     
-output = addFunc(12,78)
+output = average_of_three(12,78,65)

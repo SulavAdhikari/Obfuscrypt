@@ -3,7 +3,7 @@
     "body": [
         {
             "type": "FunctionDef",
-            "name": "addFunc",
+            "name": "average_of_three",
             "args": {
                 "args": [],
                 "vararg": null,
@@ -15,6 +15,10 @@
                     },
                     {
                         "name": "par2",
+                        "annotation": null
+                    },
+                    {
+                        "name": "par3",
                         "annotation": null
                     }
                 ]
@@ -33,15 +37,49 @@
                     "value": {
                         "type": "BinaryOp",
                         "left": {
-                            "type": "Name",
-                            "id": "par1",
-                            "ctx": "Load"
+                            "type": "BinaryOp",
+                            "left": {
+                                "type": "Name",
+                                "id": "par1",
+                                "ctx": "Load"
+                            },
+                            "operator": "+",
+                            "right": {
+                                "type": "Name",
+                                "id": "par2",
+                                "ctx": "Load"
+                            }
                         },
                         "operator": "+",
                         "right": {
                             "type": "Name",
-                            "id": "par2",
+                            "id": "par3",
                             "ctx": "Load"
+                        }
+                    }
+                },
+                {
+                    "type": "Assign",
+                    "targets": [
+                        {
+                            "type": "Name",
+                            "id": "average",
+                            "ctx": "Load"
+                        }
+                    ],
+                    "operator": null,
+                    "value": {
+                        "type": "BinaryOp",
+                        "left": {
+                            "type": "Name",
+                            "id": "sum",
+                            "ctx": "Load"
+                        },
+                        "operator": "/",
+                        "right": {
+                            "type": "Constant",
+                            "value": "3",
+                            "dtype": "NUMBER"
                         }
                     }
                 },
@@ -49,7 +87,7 @@
                     "type": "Return",
                     "value": {
                         "type": "Name",
-                        "id": "sum",
+                        "id": "average",
                         "ctx": "Load"
                     }
                 }
@@ -72,7 +110,7 @@
                 "type": "Call",
                 "func": {
                     "type": "Name",
-                    "id": "addFunc",
+                    "id": "average_of_three",
                     "ctx": "Load"
                 },
                 "args": [
@@ -84,6 +122,11 @@
                     {
                         "type": "Constant",
                         "value": "78",
+                        "dtype": "NUMBER"
+                    },
+                    {
+                        "type": "Constant",
+                        "value": "65",
                         "dtype": "NUMBER"
                     }
                 ]
