@@ -1,0 +1,93 @@
+{
+    "type": "Module",
+    "body": [
+        {
+            "type": "FunctionDef",
+            "name": "addFunc",
+            "args": {
+                "args": [],
+                "vararg": null,
+                "kwarg": null,
+                "defaults": [
+                    {
+                        "name": "par1",
+                        "annotation": null
+                    },
+                    {
+                        "name": "par2",
+                        "annotation": null
+                    }
+                ]
+            },
+            "body": [
+                {
+                    "type": "Assign",
+                    "targets": [
+                        {
+                            "type": "Name",
+                            "id": "sum",
+                            "ctx": "Load"
+                        }
+                    ],
+                    "operator": null,
+                    "value": {
+                        "type": "BinaryOp",
+                        "left": {
+                            "type": "Name",
+                            "id": "par1",
+                            "ctx": "Load"
+                        },
+                        "operator": "+",
+                        "right": {
+                            "type": "Name",
+                            "id": "par2",
+                            "ctx": "Load"
+                        }
+                    }
+                },
+                {
+                    "type": "Return",
+                    "value": {
+                        "type": "Name",
+                        "id": "sum",
+                        "ctx": "Load"
+                    }
+                }
+            ],
+            "decorator_list": [],
+            "returns": null,
+            "async": false
+        },
+        {
+            "type": "Assign",
+            "targets": [
+                {
+                    "type": "Name",
+                    "id": "output",
+                    "ctx": "Load"
+                }
+            ],
+            "operator": null,
+            "value": {
+                "type": "Call",
+                "func": {
+                    "type": "Name",
+                    "id": "addFunc",
+                    "ctx": "Load"
+                },
+                "args": [
+                    {
+                        "type": "Constant",
+                        "value": "12",
+                        "dtype": "NUMBER"
+                    },
+                    {
+                        "type": "Constant",
+                        "value": "78",
+                        "dtype": "NUMBER"
+                    }
+                ]
+            }
+        }
+    ]
+}

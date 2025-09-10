@@ -166,10 +166,10 @@ class PythonASTVisitor(PythonParserVisitor):
         if ctx.name():
             atom_node = Name(node_type=NodeType.NAME, id=ctx.name().getText(), ctx='Load')
         elif ctx.number():
-            atom_node = Constant(node_type=NodeType.CONSTANT, value=ctx.number().getText())
+            atom_node = Constant(node_type=NodeType.CONSTANT, value=ctx.number().getText(), dtype="NUMBER")
         elif ctx.STRING():
             combined = ''.join(eval(s.getText()) for s in ctx.STRING())
-            atom_node = Constant(node_type=NodeType.CONSTANT, value=combined)
+            atom_node = Constant(node_type=NodeType.CONSTANT, value=combined, dtype="STRING")
         return atom_node
 
     # Binary operations - assuming your grammar has this rule or something similar

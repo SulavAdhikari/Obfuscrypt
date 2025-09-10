@@ -178,13 +178,13 @@ class Call(Expression):
 class Constant(Expression):
     node_type: NodeType
     value: Any
-    kind: Optional[str] = None
+    dtype: Optional[str] = None
     
     def to_dict(self) -> dict:
         result = super().to_dict()
         result.update({
             "value": self.value,
-            "kind": self.kind
+            "dtype": self.dtype
         })
         return result
 
@@ -372,7 +372,15 @@ class ReturnStmt(Statement):
 
     def to_dict(self) -> dict:
         result = super().to_dict()
-        result["value"] = self.value.to_dict() if self.value else None
+        if self.value:
+            if type(self.value) == list:
+                result["value"] = []
+                for val in self.value:
+                    result["value"].append(val.to_dict())
+            else:
+                result["value"] = self.value.to_dict()
+        else:
+            result["value"] = None
         return result
 
 
