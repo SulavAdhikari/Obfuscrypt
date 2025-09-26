@@ -161,14 +161,14 @@ class UnaryOp(Expression):
 @dataclass
 class Call(Expression):
     node_type: NodeType
-    func: Expression
+    identifier: Expression
     args: List[Expression]
     # keywords: List[Keyword]
     
     def to_dict(self) -> dict:
         result = super().to_dict()
         result.update({
-            "func": self.func.to_dict(),
+            "identifier": self.identifier.to_dict(),
             "args": [arg.to_dict() for arg in self.args],
             #"keywords": [kw.to_dict() for kw in self.keywords]
         })

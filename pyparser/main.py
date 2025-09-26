@@ -9,7 +9,7 @@ input_folder = os.path.join(BASE_DIR, 'input')
 output_folder = os.path.join(BASE_DIR, 'output')
 
 input_file = open(os.path.join(input_folder, 'input.py'), 'rt')
-output_file = open(os.path.join(input_folder, 'output.json'), 'wt')
+output_file = open(os.path.join(output_folder, 'output.json'), 'wt')
 
 def parse_python(code: str) -> dict:
     input_stream = InputStream(code)

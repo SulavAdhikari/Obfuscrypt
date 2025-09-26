@@ -185,7 +185,7 @@ class PythonASTVisitor(PythonParserVisitor):
             for tr in ctx.trailer():
                 if tr.arguments():
                     args = [self.visit(arg) for arg in tr.arguments().arglist().argument()]
-                    return Call(node_type=NodeType.CALL, func=self.visit(ctx.atom()), args=args)
+                    return Call(node_type=NodeType.CALL, identifier=self.visit(ctx.atom()), args=args)
         else:
             return self.visit(ctx.getChild(0))
 
