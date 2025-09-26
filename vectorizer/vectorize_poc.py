@@ -106,7 +106,7 @@ def json_ast_to_vector_space_eval(json_ast):
                 if target["type"] == "Name":
                     env[target["id"]] = val
                     coord = VectorCordinate(vs, exec_pos)
-                    coord.set_dimension_value(f"Output_{target['id']}", val)
+                    coord.set_dimension_value(f"Var_{target['id']}", val)
                     exec_pos += 1
             return val
 
