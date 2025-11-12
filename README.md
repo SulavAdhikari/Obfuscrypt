@@ -1,35 +1,88 @@
-﻿# Obfuscrypt
+# Obfuscrypt
 
-UHH... this might be good, might not be good. 
+> Research-grade code obfuscation framework — preserve semantics, hide implementation & logic.
 
-Too bad im lazy. but check out kernel_patch on insta. if i decide to make devlog it will be there
-but if i were you i wont expect anything from me..
+## Status
 
+* **Stage:** Prototype / proof-of-concept
+* **Language POC:** Python
+* **Branches:** `pyparser_development`, `vectorize_poc`
 
-right now python parser is semi functional
+## Project overview
 
-branch - pyparser_development
+Obfuscrypt is a modular framework of obfuscation primitives and verification pipelines designed to transform source code (and internal logic) while preserving observable program behavior. The project combines AST-level transformations, vectorized program representations, and probabilistic equivalence verification (Monte Carlo sampling) to estimate semantic preservation.
 
-also i tried doing code equivalency test first. 
-IDK , 
+This repository contains experimental tooling and research code; it is **not** production-ready.
 
-CODE ---> Abstract syntax tree ---> plotted in a multidimentional vector co-ordinate space as a trajectory ---> then compare the trajectory and the final co-ordinate (monte-calro) ---> evaluate probability of functional equivalency
+## Goals
 
-branch - vectorize_poc
+* Provide a library of **prebuilt + custom obfuscation primitives** (syntax, control-flow, data encoding, opaque predicates, logic rewriting, virtualization-like transformations).
+* Offer a modular pipeline where parsers, normalizers, vectorizers, and obfuscation passes can be swapped.
+* Verify semantics probabilistically using input sampling and trajectory-comparison metrics.
+* Produce a visual/dev UI (optional) for composing pipelines and visualizing AST → vector trajectories.
 
-(this one might have a devlog @ kernel_patch if i deciede to do it)
+## High-level approach
 
-right now i dont have an idea on how to deal with trajetory comparision. i do know that if you constrain the dimensions the trajectory would actually be meaningful and not just nonsense data
+1. **Parse:** Convert source into an AST (language-specific parser; Python POC included).
+2. **Normalize:** Canonicalize AST (whitespace, short names, deterministic ordering of some constructs) to reduce embedding noise.
+3. **Vectorize:** Map AST nodes, edges, and execution traces into a constrained multidimensional coordinate space.
+4. **Trajectory:** Represent program execution (or control/data-flow) as a trajectory through that vector space for sampled inputs.
+5. **Compare:** Use trajectory similarity metrics and endpoint comparison across Monte Carlo-sampled inputs to estimate functional equivalence.
+6. **Obfuscate:** Apply modular transformations that preserve the target equivalence metric — test with the verification pipeline.
 
-Too bad i have ADHD i can see it in my head, just cant build it
+> Note: naive embeddings produce high-dimensional noise; constraining dimensions and careful feature selection are critical for meaningful trajectories.
 
-the code obfuscation part, i dont plan it to be a click a button and get a output kind of thing. 
-its going to be a framework consisting of prebuilt and custom ways to obfuscate not only the code but also the logic behind it and still get the same output.
-all of this will be integrated on a drag and drop UI ofc...
+## Technical notes — vectorization & equivalence
 
+* **Vectorization:** multiple approaches are explored (node-type embeddings, structural positional encodings, execution-state vectors). Embeddings must be constrained and normalized across program variants.
+* **Trajectory generation:** either static (AST traversal order) or dynamic (instrumented execution traces). Dynamic traces provide stronger behavioral signals but require safe sandboxing and input sampling strategy.
+* **Equivalence metric:** combination of trajectory similarity (DTW / cosine on constrained dims), endpoint output equality, and property-based checks. Monte Carlo sampling estimates probability of equivalence; coverage depends on input distribution.
+* **Tradeoffs:** probabilistic verification cannot guarantee equivalence for arbitrary inputs — treat outputs as evidence, not absolute proof.
 
-peace. this is the typa project you'll never get to see completed. like GTA 6.
+## Obfuscation primitives (examples)
 
-Do not send pull requests. i wont check it will be a waste of effort
+* Identifier renaming & shadowing transformations
+* Control-flow flattening and split/join patterns
+* Opaque predicates and conditional morphing
+* Expression rewriting and algebraic transformations
+* Data encoding and packing layers
+* Small VM / bytecode virtualization POC (research)
 
+## Usage (quick)
 
+1. Check out `pyparser_development` for parser/normalizer experiments.
+2. Check out `vectorize_poc` for vectorization & trajectory comparison POC.
+3. Run instrumented tests (Monte Carlo input harness) to evaluate transformations.
+
+## Limitations
+
+* Currently a research prototype with limited language support (Python POC only).
+* Equivalence verification is probabilistic and depends on input sampling quality.
+* Not intended as a turnkey "one-click obfuscator" — it's a framework for experimentation and composition.
+
+## Roadmap
+
+* Stabilize python parser and AST normalization pipeline.
+* Implement and benchmark multiple embedding schemes with controlled dimensionality.
+* Build a core set of obfuscation primitives with end-to-end verification tests.
+* Prototype a minimal UI for composing pipelines and visualizing trajectories.
+
+## Devlog & updates
+
+Occasional devlog posts may appear at `@kernel_patch` on Instagram. Updates are sporadic.
+
+## Contribution
+
+* Pull requests: **please do not submit PRs** — they will not be reviewed. If you want to help, open an issue describing a focused research contribution first.
+
+## License
+
+TBD — research-use preferred. Check LICENSE file in repo (if present).
+
+## Contact
+
+Repo maintainer: `kernel_patch` (sporadic updates)
+
+---
+
+*Short, technical, research-focused README. If you want: I can also output a compact `DEVELOPER.md` with API examples or a `VECTORIZATION.md` that explains embedding experiments in detail.*
