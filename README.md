@@ -52,7 +52,7 @@ This repository contains experimental tooling and research code; it is **not** p
 
 1. Check out `pyparser_development` for parser/normalizer experiments.
 2. Check out `vectorize_poc` for vectorization & trajectory comparison POC.
-3. Run instrumented tests (Monte Carlo input harness) to evaluate transformations.
+
 
 ## Limitations
 
@@ -86,3 +86,4 @@ Repo maintainer: `kernel_patch` (sporadic updates)
 ---
 
 *Short, technical, research-focused README. If you want: I can also output a compact `DEVELOPER.md` with API examples or a `VECTORIZATION.md` that explains embedding experiments in detail.*
+
