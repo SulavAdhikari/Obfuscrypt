@@ -11,7 +11,7 @@ right now python parser is semi functional
 also i tried doing code equivalency test first. 
 IDK , 
 
-CODE ---> Abstract syntax tree ---> plotted in a multidimentional vector co-ordinate space as a trajectory ---> then compare the trajectory and the final co-ordinate (monte-calro) ---> evaluate probability of likely hood
+CODE ---> Abstract syntax tree ---> plotted in a multidimentional vector co-ordinate space as a trajectory ---> then compare the trajectory and the final co-ordinate (monte-calro) ---> evaluate probability of functional equivalency
 
 (this one might have a devlog @ kernel_patch if i deciede to do it)
 
@@ -25,4 +25,5 @@ all of this will be integrated on a drag and drop UI ofc...
 
 
 peace. this is the typa project you'll never get to see completed. like GTA 6.
+
 
