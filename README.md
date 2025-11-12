@@ -30,5 +30,6 @@ all of this will be integrated on a drag and drop UI ofc...
 
 peace. this is the typa project you'll never get to see completed. like GTA 6.
 
+Do not send pull requests. i wont check it will be a waste of effort
 
 
