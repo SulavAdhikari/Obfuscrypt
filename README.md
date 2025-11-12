@@ -8,10 +8,14 @@ but if i were you i wont expect anything from me..
 
 right now python parser is semi functional
 
+branch - pyparser_development
+
 also i tried doing code equivalency test first. 
 IDK , 
 
 CODE ---> Abstract syntax tree ---> plotted in a multidimentional vector co-ordinate space as a trajectory ---> then compare the trajectory and the final co-ordinate (monte-calro) ---> evaluate probability of functional equivalency
+
+branch - vectorize_poc
 
 (this one might have a devlog @ kernel_patch if i deciede to do it)
 
@@ -25,5 +29,6 @@ all of this will be integrated on a drag and drop UI ofc...
 
 
 peace. this is the typa project you'll never get to see completed. like GTA 6.
+
 
 
