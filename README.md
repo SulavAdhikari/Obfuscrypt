@@ -85,5 +85,5 @@ Repo maintainer: `kernel_patch` (sporadic updates)
 
 ---
 
-*Short, technical, research-focused README. If you want: I can also output a compact `DEVELOPER.md` with API examples or a `VECTORIZATION.md` that explains embedding experiments in detail.*
+ANTLR BTW
 
