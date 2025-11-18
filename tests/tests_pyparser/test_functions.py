@@ -44,8 +44,6 @@ class TestFunctionality:
         Tests a function with arguments and a return value that is a binary operation (x + y).
         """
         code = "def add(x, y):\n    return x + y"
-        from pprint import pprint
-
         expected_ast = {
             "body": [
                 {
@@ -80,7 +78,6 @@ class TestFunctionality:
         }
 
         result = parse_python(code)
-        pprint(result)
         assert result == expected_ast
 
     def test_return_function_call(self):
