@@ -1,47 +1,56 @@
 from antlr4 import *
+from antlr4.Token import CommonToken
 from typing import List
+import sys
+import re
 
 class PythonLexerBase(Lexer):
-    def __init__(self, input: InputStream):
-        super().__init__(input)
+    def __init__(self, input: InputStream, output=sys.stdout):
+        super().__init__(input, output)
         self.tokens: List[Token] = []
         self.indents: List[int] = []
         self.opened: int = 0
-        self.last_token = None
-        self.first_token = True
+        self.last_token: Token = None
 
+    def atStartOfInput(self) -> bool:
+        return self.column == 0 and self.line == 1
+    
     def reset(self):
-        self.tokens = []
-        self.indents = []
+        super().reset()
+        self.tokens.clear()
+        self.indents.clear()
         self.opened = 0
         self.last_token = None
-        self.first_token = True
-        super().reset()
 
     def nextToken(self) -> Token:
+        # Return pending tokens first
         if self.tokens:
-            next_token = self.tokens.pop(0)
-            return next_token
+            return self.tokens.pop(0)
 
         token = super().nextToken()
 
-        if token.type == Token.EOF and self.indents:
-            self.emit_token(self.NEWLINE)
-            while self.indents:
-                self.emit_token(self.DEDENT)
-                self.indents.pop()
+        if token.type == Token.EOF:
+            if self.indents:
+                self.emit_token(self.NEWLINE, "\n")
+                while self.indents:
+                    self.indents.pop()
+                    self.emit_token(self.DEDENT, "")
+            if self.tokens:
+                return self.tokens.pop(0)
 
         self.last_token = token
         return token
 
-    def emit_token(self, token_type: int) -> None:
+    def emit_token(self, token_type: int, text: str = "") -> None:
+        start = self.last_token.start if self.last_token else -1
+        stop = self.last_token.stop if self.last_token else -1
         token = CommonToken(
             type=token_type,
             channel=Token.DEFAULT_CHANNEL,
-            text="",
-            start=self.last_token.start if self.last_token else 0,
-            stop=self.last_token.stop if self.last_token else 0
+            start=start,
+            stop=stop
         )
+        token.text = text
         self.tokens.append(token)
 
     def IncIndentLevel(self) -> None:
@@ -51,24 +60,20 @@ class PythonLexerBase(Lexer):
         if self.opened > 0:
             self.opened -= 1
 
-    def atStartOfInput(self) -> bool:
-        return self.first_token
-
-    def onNewLine(self) -> None:
-        self.first_token = False
-        newLine = self.text.replace(" ", "").replace("\t", "")
-        spaces = self.text.replace("\r", "").replace("\n", "").replace("\f", "")
+    def onNewLine(self):
+        # Compute leading spaces/tabs
+        spaces = re.match(r"[ \t]*", self.text).group(0)
+        current_indent = len(spaces.replace("\t", "    "))  # tabs = 4 spaces
 
         if self.opened == 0:
-            if len(spaces) > 0:
-                current_indent = len(spaces)
-                if not self.indents or current_indent > self.indents[-1]:
-                    self.indents.append(current_indent)
-                    self.emit_token(self.INDENT)
-                elif current_indent < self.indents[-1]:
-                    while self.indents and current_indent < self.indents[-1]:
-                        self.emit_token(self.DEDENT)
-                        self.indents.pop()
+            prev_indent = self.indents[-1] if self.indents else 0
+            if current_indent > prev_indent:
+                self.indents.append(current_indent)
+                self.emit_token(self.INDENT)
+            elif current_indent < prev_indent:
+                while self.indents and current_indent < self.indents[-1]:
+                    self.indents.pop()
+                    self.emit_token(self.DEDENT)
 
-        if len(newLine) > 0:
-            self.emit_token(self.NEWLINE)
+        # Emit LINE_BREAK token instead of NEWLINE
+        self.emit_token(self.LINE_BREAK, self.text)

@@ -7,8 +7,7 @@ options {
 // Keywords
 tokens {
     INDENT,
-    DEDENT,
-    LINE_BREAK
+    DEDENT
 }
 
 // All your existing token definitions from the parser file should be moved here
@@ -95,30 +94,30 @@ POWER_ASSIGN       : '**=';
 IDIV_ASSIGN        : '//=';
 
 // Delimiters
-OPEN_PAREN    : '(' {this.IncIndentLevel();};
-CLOSE_PAREN   : ')' {this.DecIndentLevel();};
-OPEN_BRACE    : '{' {this.IncIndentLevel();};
-CLOSE_BRACE   : '}' {this.DecIndentLevel();};
-OPEN_BRACKET  : '[' {this.IncIndentLevel();};
-CLOSE_BRACKET : ']' {this.DecIndentLevel();};
+OPEN_PAREN    : '(' {self.IncIndentLevel()};
+CLOSE_PAREN   : ')' {self.DecIndentLevel()};
+OPEN_BRACE    : '{' {self.IncIndentLevel()};
+CLOSE_BRACE   : '}' {self.DecIndentLevel()};
+OPEN_BRACKET  : '[' {self.IncIndentLevel()};
+CLOSE_BRACKET : ']' {self.DecIndentLevel()};
 
 // Basic tokens
 NAME: ID_START ID_CONTINUE*;
 
 STRING: STRING_PREFIX? (SHORT_STRING | LONG_STRING);
 
-NUMBER
-    : INTEGER
-    | FLOAT_NUMBER
-    | IMAG_NUMBER
-    ;
+// NUMBER
+//     : INTEGER
+//     | FLOAT_NUMBER
+//     | IMAG_NUMBER
+//     ;
 
-INTEGER
-    : DECIMAL_INTEGER
-    | OCT_INTEGER
-    | HEX_INTEGER
-    | BIN_INTEGER
-    ;
+// INTEGER
+//     : DECIMAL_INTEGER
+//     | OCT_INTEGER
+//     | HEX_INTEGER
+//     | BIN_INTEGER
+//     ;
 
 DECIMAL_INTEGER : NON_ZERO_DIGIT DIGIT* | '0'+;
 OCT_INTEGER     : '0' [oO] [0-7]+;
@@ -128,11 +127,10 @@ BIN_INTEGER     : '0' [bB] [01]+;
 FLOAT_NUMBER    : POINT_FLOAT | EXPONENT_FLOAT;
 IMAG_NUMBER     : (FLOAT_NUMBER | INT_PART) [jJ];
 
-SKIP_
-    : ( SPACES | COMMENT | LINE_JOINING ) -> skip
-    ;
+LINE_BREAK : ('\r'? '\n' | '\r' | '\f') ;
+NEWLINE: ( {self.atStartOfInput()}? SPACES | ( '\r'? '\n' | '\r' | '\f' ) SPACES?) {self.onNewLine();};
 
-NEWLINE: ( {this.atStartOfInput()}? SPACES | ( '\r'? '\n' | '\r' | '\f' ) SPACES?) {this.onNewLine();};
+
 
 // Fragments
 fragment NON_ZERO_DIGIT : [1-9];
@@ -155,3 +153,8 @@ fragment ESCAPE_SEQ: '\\' .;
 
 fragment ID_START: '_' | [A-Z] | [a-z];
 fragment ID_CONTINUE: ID_START | [0-9];
+
+
+SKIP_
+    : ( SPACES | COMMENT | LINE_JOINING ) -> skip
+    ;

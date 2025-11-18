@@ -1,9 +1,10 @@
 from antlr4 import Parser
 from typing import List
+import sys
 
 class PythonParserBase(Parser):
-    def __init__(self, input):
-        super().__init__(input)
+    def __init__(self, input, output = sys.stdout):
+        super().__init__(input, output= sys.stdout)
         self._python_version = 3
 
     def CheckVersion(self, version: int) -> bool:
