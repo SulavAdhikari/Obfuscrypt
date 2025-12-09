@@ -51,7 +51,9 @@ This repository contains experimental tooling and research code; it is **not** p
 ## Usage (quick)
 
 1. Check out `pyparser_development` for parser/normalizer experiments.
-2. Check out `vectorize_poc` for vectorization & trajectory comparison POC.
+2. Check out input.py and output.json in pyparser.
+3. Check out testcases.
+4. Check out `vectorize_poc` for vectorization & trajectory comparison POC.
 
 
 ## Limitations
@@ -86,4 +88,5 @@ Repo maintainer: `kernel_patch` (sporadic updates)
 ---
 
 ANTLR BTW
+
 
