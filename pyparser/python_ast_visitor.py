@@ -198,6 +198,52 @@ class PythonASTVisitor(PythonParserVisitor):
         val = eval(ctx.getText())
         return Constant(node_type=NodeType.CONSTANT, value=val)
 
+    # conditional statement
+    def visitIf_stmt(self, ctx: PythonParser.If_stmtContext) -> IfStmt:
+        test = self.visit(ctx.test())
+        body = self.visit(ctx.suite())
+        elif_clauses = []
+        else_clause = None
+
+        for child in ctx.getChildren():
+            if isinstance(child, PythonParser.Elif_clauseContext):
+                elif_clauses.append(self.visit(child))
+            elif isinstance(child, PythonParser.Else_clauseContext):
+                else_clause = self.visit(child)
+
+        return IfStmt(
+            node_type=NodeType.IF,
+            test=test,
+            body=body,
+            elif_clauses=elif_clauses,
+            else_clause=else_clause
+        )
+
+    def visitElif_clause(self, ctx: PythonParser.Elif_clauseContext) -> ElifStmt:
+        test = self.visit(ctx.test())
+        body = self.visit(ctx.suite())
+        return ElifStmt(
+            node_type=NodeType.ELIF,
+            test=test,
+            body=body
+        )
+
+    def visitElse_clause(self, ctx: PythonParser.Else_clauseContext) -> ElseStmt:
+        body = self.visit(ctx.suite())
+        return ElseStmt(
+            node_type=NodeType.ELSE,
+            body=body
+        )
+
+    def visitComparison(self, ctx: PythonParser.ComparisonContext) -> BinaryOp:
+        if ctx.getChildCount() == 3:
+            left = self.visit(ctx.getChild(0))
+            operator = ctx.getChild(1).getText()
+            right = self.visit(ctx.getChild(2))
+            return BinaryOp(node_type=NodeType.BINARY_OP, left=left, operator=operator, right=right)    
+        else:
+            return self.visitChildren(ctx)
+
     # More visit methods for other node types go here...
     
     # Fallback
