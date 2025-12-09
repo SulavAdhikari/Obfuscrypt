@@ -120,7 +120,7 @@ class Arguments:
         }
 
 @dataclass
-class Arg:
+class Arg(Expression):
     name: str
     annotation: Optional[Expression] = None
     

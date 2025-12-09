@@ -66,11 +66,11 @@ class PythonASTVisitor(PythonParserVisitor):
     def visitName(self, ctx):
         name = ctx.getText()
         if name == "True":
-            return Constant(node_type=NodeType.CONSTANT, value=True, kind="BOOLEAN")
+            return Constant(node_type=NodeType.CONSTANT, value=True, dtype="BOOLEAN")
         elif name == "False":
-            return Constant(node_type=NodeType.CONSTANT, value=False, kind="BOOLEAN")
+            return Constant(node_type=NodeType.CONSTANT, value=False, dtype="BOOLEAN")
         else:
-            return Constant(node_type=NodeType.NAME, value=name)    
+            return Name(node_type=NodeType.NAME, id=ctx.getText(), ctx='Load')    
     
     def visitNamed_parameter(self, ctx: PythonParser.Named_parameterContext) -> Arg:
         name = ctx.name().getText()
@@ -151,7 +151,7 @@ class PythonASTVisitor(PythonParserVisitor):
             return expr
 
     def visitAssign_part(self, ctx):
-        operator = self.visit(ctx.getChild(0))
+        operator = ctx.getChild(0).getText()
         value = self.visit(ctx.getChild(1))
         return operator, value
     
@@ -164,7 +164,7 @@ class PythonASTVisitor(PythonParserVisitor):
             # This is a function call
         atom_node = None
         if ctx.name():
-            atom_node = Name(node_type=NodeType.NAME, id=ctx.name().getText(), ctx='Load')
+            atom_node = self.visit(ctx.name())
         elif ctx.number():
             atom_node = Constant(node_type=NodeType.CONSTANT, value=ctx.number().getText(), dtype="NUMBER")
         elif ctx.STRING():
@@ -188,10 +188,6 @@ class PythonASTVisitor(PythonParserVisitor):
                     return Call(node_type=NodeType.CALL, identifier=self.visit(ctx.atom()), args=args)
         else:
             return self.visit(ctx.getChild(0))
-
-    # Name nodes
-    def visitName(self, ctx: PythonParser.NameContext) -> Name:
-        return Name(node_type=NodeType.NAME, id=ctx.getText(), ctx='Load')
 
     # Constants (numbers, strings)
     def visitNumber(self, ctx: PythonParser.NumberContext) -> Constant:
