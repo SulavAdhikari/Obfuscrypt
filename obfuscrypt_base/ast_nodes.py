@@ -9,10 +9,12 @@ class NodeType(Enum):
     CLASS_DEF = "ClassDef"
     RETURN = "Return"
     ASSIGN = "Assign"
-    IF = "If"
-    WHILE = "While"
-    FOR = "For"
-    TRY = "Try"
+    IF = "IfStatement"
+    ELSE = "ElseStatement"
+    ELIF = "ElifStatement"
+    WHILE = "WhileStatement"
+    FOR = "ForStatement"
+    TRY = "TryStatement"
     WITH = "With"
     RAISE = "Raise"
     IMPORT = "Import"
@@ -309,20 +311,51 @@ class SetExpr(Expression):
         result["elts"] = [elt.to_dict() for elt in self.elts]
         return result
 
-
 @dataclass
-class IfStmt(Statement):
+class ElifStmt(Statement):
     node_type: NodeType = NodeType.IF
     test: Expression = None
     body: List[Statement] = field(default_factory=list)
-    orelse: List[Statement] = field(default_factory=list)
+
 
     def to_dict(self) -> dict:
         result = super().to_dict()
         result.update({
             "test": self.test.to_dict() if self.test else None,
             "body": [stmt.to_dict() for stmt in self.body],
-            "orelse": [stmt.to_dict() for stmt in self.orelse]
+        })
+        return result
+
+@dataclass
+class ElseStmt(Statement):
+    node_type: NodeType = NodeType.IF
+    test: Expression = None
+    body: List[Statement] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        result = super().to_dict()
+        result.update({
+            "test": self.test.to_dict() if self.test else None,
+            "body": [stmt.to_dict() for stmt in self.body],
+
+        })
+        return result
+
+@dataclass
+class IfStmt(Statement):
+    node_type: NodeType = NodeType.IF
+    test: Expression = None
+    body: List[Statement] = field(default_factory=list)
+    elif_clauses: ElifStmt = field(default_factory=list)
+    else_clause: ElseStmt = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        result = super().to_dict()
+        result.update({
+            "test": self.test.to_dict() if self.test else None,
+            "body": [stmt.to_dict() for stmt in self.body],
+            "ifelse": [e.to_dict() for e in self.elif_clauses] if self.elif_clauses else None,
+            "else": self.else_clause.to_dict() if self.else_clause else None
         })
         return result
 

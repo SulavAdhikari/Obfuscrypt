@@ -3,116 +3,68 @@
     "body": [
         {
             "type": "FunctionDef",
-            "name": "sum",
+            "name": "is_even",
             "args": {
                 "args": [],
                 "vararg": null,
                 "kwarg": null,
                 "defaults": [
                     {
-                        "name": "a",
-                        "annotation": null
-                    },
-                    {
-                        "name": "b",
-                        "annotation": null
-                    },
-                    {
-                        "name": "c",
+                        "name": "num",
                         "annotation": null
                     }
                 ]
             },
             "body": [
                 {
-                    "type": "Return",
-                    "value": {
+                    "type": "IfStatement",
+                    "test": {
                         "type": "BinaryOp",
                         "left": {
                             "type": "BinaryOp",
                             "left": {
                                 "type": "Name",
-                                "id": "a",
+                                "id": "num",
                                 "ctx": "Load"
                             },
-                            "operator": "+",
+                            "operator": "%",
                             "right": {
-                                "type": "Name",
-                                "id": "b",
-                                "ctx": "Load"
+                                "type": "Constant",
+                                "value": "2",
+                                "dtype": "NUMBER"
                             }
                         },
-                        "operator": "+",
-                        "right": {
-                            "type": "Name",
-                            "id": "c",
-                            "ctx": "Load"
-                        }
-                    }
-                }
-            ],
-            "decorator_list": [],
-            "returns": null,
-            "async": false
-        },
-        {
-            "type": "FunctionDef",
-            "name": "average_of_three",
-            "args": {
-                "args": [],
-                "vararg": null,
-                "kwarg": null,
-                "defaults": [
-                    {
-                        "name": "par1",
-                        "annotation": null
-                    },
-                    {
-                        "name": "par2",
-                        "annotation": null
-                    },
-                    {
-                        "name": "par3",
-                        "annotation": null
-                    }
-                ]
-            },
-            "body": [
-                {
-                    "type": "Return",
-                    "value": {
-                        "type": "BinaryOp",
-                        "left": {
-                            "type": "Call",
-                            "identifier": {
-                                "type": "Name",
-                                "id": "sum",
-                                "ctx": "Load"
-                            },
-                            "args": [
-                                {
-                                    "type": "Name",
-                                    "id": "par1",
-                                    "ctx": "Load"
-                                },
-                                {
-                                    "type": "Name",
-                                    "id": "par2",
-                                    "ctx": "Load"
-                                },
-                                {
-                                    "type": "Name",
-                                    "id": "par3",
-                                    "ctx": "Load"
-                                }
-                            ]
-                        },
-                        "operator": "/",
+                        "operator": "==",
                         "right": {
                             "type": "Constant",
-                            "value": "3",
+                            "value": "0",
                             "dtype": "NUMBER"
                         }
+                    },
+                    "body": [
+                        {
+                            "type": "Return",
+                            "value": {
+                                "type": "Name",
+                                "id": "True",
+                                "ctx": "Load"
+                            }
+                        }
+                    ],
+                    "ifelse": null,
+                    "else": {
+                        "type": "ElseStatement",
+                        "test": null,
+                        "body": [
+                            {
+                                "type": "Return",
+                                "value": {
+                                    "type": "Name",
+                                    "id": "False",
+                                    "ctx": "Load"
+                                }
+                            }
+                        ]
                     }
                 }
             ],
@@ -134,23 +86,13 @@
                 "type": "Call",
                 "identifier": {
                     "type": "Name",
-                    "id": "average_of_three",
+                    "id": "is_even",
                     "ctx": "Load"
                 },
                 "args": [
                     {
                         "type": "Constant",
-                        "value": "12",
-                        "dtype": "NUMBER"
-                    },
-                    {
-                        "type": "Constant",
-                        "value": "78",
-                        "dtype": "NUMBER"
-                    },
-                    {
-                        "type": "Constant",
-                        "value": "65",
+                        "value": "10",
                         "dtype": "NUMBER"
                     }
                 ]
