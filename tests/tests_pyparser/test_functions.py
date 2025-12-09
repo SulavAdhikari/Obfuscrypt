@@ -3,7 +3,7 @@ from pyparser.main import parse_python
 import pytest
 
 
-class TestFunctionality:
+class TestFunctionDefinition:
 
     def test_function_def_simple(self):
         """
