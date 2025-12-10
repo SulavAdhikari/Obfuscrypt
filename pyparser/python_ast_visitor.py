@@ -59,7 +59,11 @@ class PythonASTVisitor(PythonParserVisitor):
                 kwarg = self.visit(child)
             elif isinstance(child, PythonParser.Def_parametersContext):
                 # could be defaults, skip for now
-                defaults = self.visit(child)
+                vals = self.visit(child)
+                if isinstance(vals, list):
+                    defaults.extend(vals)
+                elif vals:
+                    defaults.append(vals)
 
         return Arguments(node_type=NodeType.ARGUMENTS, args=args, vararg=vararg, kwarg=kwarg, defaults=defaults)
 
