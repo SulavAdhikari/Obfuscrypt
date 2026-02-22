@@ -132,13 +132,16 @@ Every concrete node inherits from one of these and **overrides `to_dict()`** to 
 | `Assign` | `"Assign"` | `targets: List[Expression]`, `value: Expression`, `operator: str` (default `"="`) |
 | `IfStmt` | `"IfStatement"` | `test: Expression`, `body: List[Statement]`, `elif_clauses: List[ElifStmt]`, `else_clause: Optional[ElseStmt]` |
 | `ElifStmt` | `"ElifStatement"` | `test: Expression`, `body: List[Statement]` |
-| `ElseStmt` | `"ElseStatement"` | `body: List[Statement]`, `test: Expression` (always None) |
+| `ElseStmt` | `"ElseStatement"` | `body: List[Statement]` |
 | `WhileStmt` | `"WhileStatement"` | `test: Expression`, `body: List[Statement]`, `orelse: List[Statement]` |
 | `ForStmt` | `"ForStatement"` | `target: Expression`, `iter: Expression`, `body: List[Statement]`, `orelse: List[Statement]`, `async_: bool` |
 | `ReturnStmt` | `"Return"` | `value: Optional[Expression]` |
 | `RaiseStmt` | `"Raise"` | `exc: Optional[Expression]`, `cause: Optional[Expression]` |
 | `ImportStmt` | `"Import"` | `names: List[Alias]` |
 | `ImportFromStmt` | `"ImportFrom"` | `module: Optional[str]`, `names: List[Alias]`, `level: Optional[int]` |
+| `PassStmt` | `"Pass"` | *(Takes no arguments)* |
+| `BreakStmt` | `"Break"` | *(Takes no arguments)* |
+| `ContinueStmt` | `"Continue"` | *(Takes no arguments)* |
 
 ### 4.4 Expression Nodes
 
@@ -206,6 +209,11 @@ Extends ANTLR-generated `PythonParserVisitor`. Maps parse tree context objects t
 | `visitElse_clause` | `Else_clauseContext` | `ElseStmt` | body only |
 | `visitComparison` | `ComparisonContext` | `BinaryOp` or child | 3-child → BinaryOp with operator; else dispatches to children |
 | `visitChildren` | any node | value or list | Fallback: collects non-None results; unwraps singleton lists |
+| `visitWhile_stmt` | `While_stmtContext` | `WhileStmt` | Extracts `test`, `suite` mapping to `body`, and optional `else_clause` |
+| `visitFor_stmt` | `For_stmtContext` | `ForStmt` | Extracts `target`, `iter`, `suite` mapping to `body`, and optional `else_clause` |
+| `visitBreak_stmt` | `Break_stmtContext` | `BreakStmt` | Returns `BreakStmt` node directly |
+| `visitContinue_stmt` | `Continue_stmtContext` | `ContinueStmt` | Returns `ContinueStmt` node directly |
+| `visitPass_stmt` | `Pass_stmtContext` | `PassStmt` | Returns `PassStmt` node directly |
 
 **Important behaviours**:
 - Decorators are **not yet implemented** (always empty list)
@@ -282,8 +290,12 @@ Recursively converts a JSON dict (as output by `parse_python()`) into a Python `
 | `"Constant"` | `ast.Constant(value=...)` |
 | `"BinaryOp"` / `"BinOp"` | `ast.BinOp(left, op=ast.Add()/ast.Sub(), right)` |
 | `"Compare"` | `ast.Compare(left, ops=[ast.Gt()/ast.Lt()], comparators=[...])` |
-| `"For"` | `ast.For(target, iter, body, orelse=[])` |
+| `"For"` / `"ForStatement"` | `ast.For(target, iter, body, orelse=[])` |
 | `"If"` | `ast.If(test, body, orelse=[])` |
+| `"WhileStatement"` | `ast.While(test, body, orelse=[])` |
+| `"Break"` | `ast.Break()` |
+| `"Continue"` | `ast.Continue()` |
+| `"Pass"` | `ast.Pass()` |
 | `"Call"` | `ast.Call(func, args, keywords=[])` |
 | `"Return"` | `ast.Return(value=...)` |
 | `"Tuple"` | `ast.Tuple(elts=[...], ctx=ast.Load())` |
@@ -527,7 +539,7 @@ All tests use `parse_python()` from `pyparser/main.py` and assert the full JSON 
   "test": {"type": "Constant", "value": true, "dtype": "BOOLEAN"},
   "body": [...],
   "ifelse": [...ElifStatement dicts...] | null,
-  "else": {"type": "ElseStatement", "body": [...], "test": null} | null
+  "else": {"type": "ElseStatement", "body": [...]} | null
 }
 ```
 
@@ -555,6 +567,30 @@ All tests use `parse_python()` from `pyparser/main.py` and assert the full JSON 
 {
   "type": "Return",
   "value": { ...Expression dict... }
+}
+```
+
+### 10.8 Loops (WhileStatement & ForStatement)
+
+#### WhileStatement
+```json
+{
+  "type": "WhileStatement",
+  "test": { ...Expression dict... },
+  "body": [ ...Statement dicts... ],
+  "orelse": [ ...Statement dicts... ] | []
+}
+```
+
+#### ForStatement
+```json
+{
+  "type": "ForStatement",
+  "target": { ...Expression (Name) dict... },
+  "iter": { ...Expression dict... },
+  "body": [ ...Statement dicts... ],
+  "orelse": [ ...Statement dicts... ] | [],
+  "async": false
 }
 ```
 

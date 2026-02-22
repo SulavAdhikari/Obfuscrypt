@@ -19,7 +19,10 @@ class NodeType(Enum):
     RAISE = "Raise"
     IMPORT = "Import"
     IMPORT_FROM = "ImportFrom"
-    
+    PASS = "Pass"
+    BREAK = "Break"
+    CONTINUE = "Continue"
+
     # Expressions
     BINARY_OP = "BinaryOp"
     UNARY_OP = "UnaryOp"
@@ -313,7 +316,7 @@ class SetExpr(Expression):
 
 @dataclass
 class ElifStmt(Statement):
-    node_type: NodeType = NodeType.IF
+    node_type: NodeType = NodeType.ELIF
     test: Expression = None
     body: List[Statement] = field(default_factory=list)
 
@@ -328,16 +331,13 @@ class ElifStmt(Statement):
 
 @dataclass
 class ElseStmt(Statement):
-    node_type: NodeType = NodeType.IF
-    test: Expression = None
+    node_type: NodeType = NodeType.ELSE
     body: List[Statement] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         result = super().to_dict()
         result.update({
-            "test": self.test.to_dict() if self.test else None,
             "body": [stmt.to_dict() for stmt in self.body],
-
         })
         return result
 
@@ -472,3 +472,25 @@ class Alias(ASTNode):
         }
 
 
+@dataclass
+class PassStmt(Statement):
+    node_type: NodeType = NodeType.PASS
+
+    def to_dict(self) -> dict:
+        return super().to_dict()
+
+
+@dataclass
+class BreakStmt(Statement):
+    node_type: NodeType = NodeType.BREAK
+
+    def to_dict(self) -> dict:
+        return super().to_dict()
+
+
+@dataclass
+class ContinueStmt(Statement):
+    node_type: NodeType = NodeType.CONTINUE
+
+    def to_dict(self) -> dict:
+        return super().to_dict()

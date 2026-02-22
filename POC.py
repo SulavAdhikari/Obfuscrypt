@@ -12,7 +12,17 @@ def json_to_ast(node):
         return ast.Module(body=[json_to_ast(n) for n in node["body"]], type_ignores=[])
     if t=="FunctionDef":
         # Function definition with name, arguments, and body
-        args=json_to_ast(node["args"])
+        args_node = node["args"]
+        python_args = []
+        if "type" in args_node and args_node["type"] == "arguments":
+             python_args = [ast.arg(arg=a["arg"]) for a in args_node.get("args",[])]
+        else:
+             for d in args_node.get("defaults", []):
+                 python_args.append(ast.arg(arg=d["name"]))
+             for a in args_node.get("args", []):
+                 python_args.append(ast.arg(arg=a.get("name", "unk")))
+        
+        args = ast.arguments(posonlyargs=[], args=python_args, vararg=None, kwonlyargs=[], kw_defaults=[], kwarg=None, defaults=[])
         body=[json_to_ast(s) for s in node["body"]]
         return ast.FunctionDef(name=node["name"], args=args, body=body, decorator_list=[], returns=None)
     if t=="arguments":
@@ -45,17 +55,29 @@ def json_to_ast(node):
             ops.append(ast.Gt() if o==">" else ast.Lt())
         comparators=[json_to_ast(c) for c in node.get("comparators",[])]
         return ast.Compare(left=left, ops=ops, comparators=comparators)
-    if t=="For":
+    if t in ["For", "ForStatement"]:
         # For loop
         target=json_to_ast(node["target"])
         iter_=json_to_ast(node["iter"])
         body=[json_to_ast(s) for s in node.get("body",[])]
-        return ast.For(target=target, iter=iter_, body=body, orelse=[])
+        orelse=[json_to_ast(s) for s in node.get("orelse",[])]
+        return ast.For(target=target, iter=iter_, body=body, orelse=orelse)
     if t=="If":
         # If statement
         test=json_to_ast(node["test"])
         body=[json_to_ast(s) for s in node.get("body",[])]
         return ast.If(test=test, body=body, orelse=[])
+    if t=="WhileStatement":
+        test=json_to_ast(node["test"])
+        body=[json_to_ast(s) for s in node.get("body",[])]
+        orelse=[json_to_ast(s) for s in node.get("orelse",[])]
+        return ast.While(test=test, body=body, orelse=orelse)
+    if t=="Break":
+        return ast.Break()
+    if t=="Continue":
+        return ast.Continue()
+    if t=="Pass":
+        return ast.Pass()
     if t=="Call":
         # Function call
         func=json_to_ast(node["func"])

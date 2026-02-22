@@ -68,8 +68,7 @@ class TestIfStatements:
                                 "value": {"type": "Constant", "value": "2", "dtype": "NUMBER"},
                                 "operator": "="
                             }
-                        ],
-                        "test": None
+                        ]
                     }
                 }
             ]
@@ -124,8 +123,7 @@ class TestIfStatements:
                                 "value": {"type": "Constant", "value": "3", "dtype": "NUMBER"},
                                 "operator": "="
                             }
-                        ],
-                        "test": None
+                        ]
                     }
                 }
             ]

@@ -31,12 +31,23 @@ class PythonLexerBase(Lexer):
 
         if token.type == Token.EOF:
             if self.indents:
-                self.emit_token(self.NEWLINE, "\n")
+                self.emit_token(self.LINE_BREAK, "\n")
                 while self.indents:
                     self.indents.pop()
                     self.emit_token(self.DEDENT, "")
             if self.tokens:
                 return self.tokens.pop(0)
+
+        # The NEWLINE token (type == self.NEWLINE) is a raw ANTLR-matched token
+        # that triggers onNewLine() via its action. onNewLine() already queues the
+        # proper LINE_BREAK (and INDENT/DEDENT) into self.tokens. We must hide the
+        # raw NEWLINE so it doesn't appear BEFORE LINE_BREAK in the token stream.
+        if token.type == self.NEWLINE and self.tokens:
+            # Hide the raw NEWLINE; the queued LINE_BREAK/INDENT/DEDENT will be
+            # returned on the next calls.
+            token.channel = Token.HIDDEN_CHANNEL
+            self.last_token = token
+            return self.nextToken()  # recurse to return the queued token
 
         self.last_token = token
         return token
@@ -61,9 +72,14 @@ class PythonLexerBase(Lexer):
             self.opened -= 1
 
     def onNewLine(self):
-        # Compute leading spaces/tabs
-        spaces = re.match(r"[ \t]*", self.text).group(0)
+        # self.text is e.g. '\n    ' — strip leading newline/CR chars before
+        # measuring the indentation of the next line.
+        stripped = self.text.lstrip('\r\n\f')
+        spaces = re.match(r"[ \t]*", stripped).group(0)
         current_indent = len(spaces.replace("\t", "    "))  # tabs = 4 spaces
+
+        # Emit LINE_BREAK first (the grammar expects LINE_BREAK before INDENT/DEDENT)
+        self.emit_token(self.LINE_BREAK, self.text)
 
         if self.opened == 0:
             prev_indent = self.indents[-1] if self.indents else 0
@@ -74,6 +90,3 @@ class PythonLexerBase(Lexer):
                 while self.indents and current_indent < self.indents[-1]:
                     self.indents.pop()
                     self.emit_token(self.DEDENT)
-
-        # Emit LINE_BREAK token instead of NEWLINE
-        self.emit_token(self.LINE_BREAK, self.text)

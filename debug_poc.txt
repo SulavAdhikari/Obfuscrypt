@@ -1,0 +1,20 @@
+Rewritten Source Code:
+----------------------------------------
+def bubble_sort(v_1tfor903):
+    v_oi45tprc = len(v_1tfor903)
+    for v_4tmk6303 in range(v_oi45tprc):
+        v_khxw482w = False
+        for v_tb9mk3s2 in range(0, v_oi45tprc - (v_4tmk6303 + 1)):
+            if v_1tfor903[v_tb9mk3s2] > v_1tfor903[v_tb9mk3s2 + 1]:
+                v_khxw482w = True
+                v_045z1tjr = v_1tfor903[v_tb9mk3s2]
+                v_1tfor903[v_tb9mk3s2] = v_1tfor903[v_tb9mk3s2 + 1]
+                v_1tfor903[v_tb9mk3s2 + 1] = v_045z1tjr
+        if not v_khxw482w:
+            break
+    return v_1tfor903
+----------------------------------------
+Variable Mapping:
+{'arr': 'v_1tfor903', 'n': 'v_oi45tprc', 'i': 'v_4tmk6303', '_swapped': 'v_khxw482w', 'j': 'v_tb9mk3s2', '_tmp': 'v_045z1tjr'}
+Importance Scores:
+{'arr': 13, 'n': 3, 'i': 2, 'j': 67}

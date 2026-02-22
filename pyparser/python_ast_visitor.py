@@ -131,13 +131,27 @@ class PythonASTVisitor(PythonParserVisitor):
         elif ctx.return_stmt():
             return self.visit(ctx.return_stmt())
         elif ctx.pass_stmt():
-            return "pass"  # skip
+            return PassStmt()
         elif ctx.break_stmt():
-            return None  # implement if you want
+            return BreakStmt()
         elif ctx.continue_stmt():
-            return None
+            return ContinueStmt()
         # add more as needed
         return None
+
+    # ── Sprint 3: break / continue / pass ────────────────────────────────
+    # The grammar uses labeled alternatives for small_stmt, so ANTLR dispatches
+    # to these dedicated visitor methods (not visitSmall_stmt) for these tokens.
+
+    def visitBreak_stmt(self, ctx: PythonParser.Break_stmtContext) -> BreakStmt:
+        return BreakStmt()
+
+    def visitContinue_stmt(self, ctx: PythonParser.Continue_stmtContext) -> ContinueStmt:
+        return ContinueStmt()
+
+    def visitPass_stmt(self, ctx: PythonParser.Pass_stmtContext) -> PassStmt:
+        return PassStmt()
+
 
     def visitExpr_stmt(self, ctx: PythonParser.Expr_stmtContext) -> Statement:
         # Check if assignment token exists
@@ -244,6 +258,71 @@ class PythonASTVisitor(PythonParserVisitor):
         else:
             return self.visitChildren(ctx)
 
+    # ── While loops ─────────────────────────────────────────────
+
+    def visitWhile_stmt(self, ctx: PythonParser.While_stmtContext) -> WhileStmt:
+        # WHILE test COLON suite else_clause?
+        test = self.visit(ctx.test())
+        body = self.visit(ctx.suite())
+        orelse = []
+        if ctx.else_clause():
+            else_body = self.visit(ctx.else_clause())
+            # else_clause returns an ElseStmt; extract its body list
+            if isinstance(else_body, ElseStmt):
+                orelse = else_body.body
+            elif isinstance(else_body, list):
+                orelse = else_body
+        return WhileStmt(
+            node_type=NodeType.WHILE,
+            test=test,
+            body=body,
+            orelse=orelse
+        )
+
+    # ── For loops ────────────────────────────────────────────────────────────
+
+    def visitFor_stmt(self, ctx: PythonParser.For_stmtContext) -> ForStmt:
+        # ASYNC? FOR exprlist IN testlist COLON suite else_clause?
+        async_ = bool(ctx.ASYNC())
+
+        # target: exprlist — extract expr children
+        exprlist_ctx = ctx.exprlist()
+        expr_children = exprlist_ctx.expr()
+        if len(expr_children) == 1:
+            target = self.visit(expr_children[0])
+        else:
+            # Multiple targets → TupleExpr
+            elts = [self.visit(e) for e in expr_children]
+            target = TupleExpr(elts=elts)
+
+        # iter: testlist — extract test children
+        testlist_ctx = ctx.testlist()
+        test_children = testlist_ctx.test()
+        if len(test_children) == 1:
+            iter_ = self.visit(test_children[0])
+        else:
+            elts = [self.visit(t) for t in test_children]
+            iter_ = TupleExpr(elts=elts)
+
+        body = self.visit(ctx.suite())
+
+        orelse = []
+        if ctx.else_clause():
+            else_body = self.visit(ctx.else_clause())
+            if isinstance(else_body, ElseStmt):
+                orelse = else_body.body
+            elif isinstance(else_body, list):
+                orelse = else_body
+
+        return ForStmt(
+            node_type=NodeType.FOR,
+            target=target,
+            iter=iter_,
+            body=body,
+            orelse=orelse,
+            async_=async_
+        )
+
     # More visit methods for other node types go here...
     
     # Fallback
@@ -258,4 +337,3 @@ class PythonASTVisitor(PythonParserVisitor):
         if len(results) == 1:
             return results[0]
         return results
-
