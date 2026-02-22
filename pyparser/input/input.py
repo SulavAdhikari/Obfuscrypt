@@ -5,4 +5,5 @@ def is_even(num):
     else:
         return False
     
-output = is_even(10)
+output1 = is_even(10)
+output2 = average_of_three(13,78,65)
