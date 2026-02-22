@@ -4,6 +4,10 @@ from pyparser.PythonParserVisitor import PythonParserVisitor
 from obfuscrypt_base.ast_nodes import *
 
 class PythonASTVisitor(PythonParserVisitor):
+    """
+    Custom visitor to transform ANTLR parse tree nodes into language-agnostic 
+    custom AST nodes (defined in obfuscrypt_base.ast_nodes).
+    """
 
     # Top-level module node from file_input
     def visitFile_input(self, ctx: PythonParser.File_inputContext) -> Module:
@@ -12,9 +16,6 @@ class PythonASTVisitor(PythonParserVisitor):
         for stmt in stmts:
             node = self.visit(stmt)
             if node:
-                # if isinstance(node, list):  # in case suite returns list of stmts
-                #     body.extend(node)
-                #else:
                 body.append(node)
         return Module(node_type=NodeType.MODULE, body=body)
 
@@ -58,7 +59,6 @@ class PythonASTVisitor(PythonParserVisitor):
             elif isinstance(child, PythonParser.VarkwargsContext):
                 kwarg = self.visit(child)
             elif isinstance(child, PythonParser.Def_parametersContext):
-                # could be defaults, skip for now
                 vals = self.visit(child)
                 if isinstance(vals, list):
                     defaults.extend(vals)
@@ -136,12 +136,11 @@ class PythonASTVisitor(PythonParserVisitor):
             return BreakStmt()
         elif ctx.continue_stmt():
             return ContinueStmt()
-        # add more as needed
+        if ctx.import_stmt():
+            return self.visit(ctx.import_stmt())
+        elif ctx.from_stmt():
+            return self.visit(ctx.from_stmt())
         return None
-
-    # ── Sprint 3: break / continue / pass ────────────────────────────────
-    # The grammar uses labeled alternatives for small_stmt, so ANTLR dispatches
-    # to these dedicated visitor methods (not visitSmall_stmt) for these tokens.
 
     def visitBreak_stmt(self, ctx: PythonParser.Break_stmtContext) -> BreakStmt:
         return BreakStmt()
@@ -151,6 +150,45 @@ class PythonASTVisitor(PythonParserVisitor):
 
     def visitPass_stmt(self, ctx: PythonParser.Pass_stmtContext) -> PassStmt:
         return PassStmt()
+
+
+    def visitImport_stmt(self, ctx: PythonParser.Import_stmtContext) -> ImportStmt:
+        # IMPORT dotted_as_names
+        dotted_as_names_ctx = ctx.dotted_as_names()
+        names = []
+        for dotted_as_name in dotted_as_names_ctx.dotted_as_name():
+            name = dotted_as_name.dotted_name().getText()
+            asname = None
+            if dotted_as_name.name():
+                asname = dotted_as_name.name().getText()
+            names.append(Alias(name=name, asname=asname))
+        return ImportStmt(node_type=NodeType.IMPORT, names=names)
+
+    def visitFrom_stmt(self, ctx: PythonParser.From_stmtContext) -> ImportFromStmt:
+        # FROM ((DOT | ELLIPSIS)* dotted_name | (DOT | ELLIPSIS)+) IMPORT (
+        #     STAR
+        #     | OPEN_PAREN import_as_names CLOSE_PAREN
+        #     | import_as_names
+        # )
+        
+        module = None
+        if ctx.dotted_name():
+            module = ctx.dotted_name().getText()
+            
+        names = []
+        if ctx.STAR():
+            names.append(Alias(name="*", asname=None))
+        elif ctx.import_as_names():
+            import_as_names_ctx = ctx.import_as_names()
+            for import_as_name in import_as_names_ctx.import_as_name():
+                name = import_as_name.name(0).getText()
+                asname = None
+                if len(import_as_name.name()) > 1:
+                    asname = import_as_name.name(1).getText()
+                names.append(Alias(name=name, asname=asname))
+                
+        # Handle level if necessary (dots in from), but skipping for now to get basic tests working
+        return ImportFromStmt(node_type=NodeType.IMPORT_FROM, module=module, names=names)
 
 
     def visitExpr_stmt(self, ctx: PythonParser.Expr_stmtContext) -> Statement:
@@ -258,7 +296,6 @@ class PythonASTVisitor(PythonParserVisitor):
         else:
             return self.visitChildren(ctx)
 
-    # ── While loops ─────────────────────────────────────────────
 
     def visitWhile_stmt(self, ctx: PythonParser.While_stmtContext) -> WhileStmt:
         # WHILE test COLON suite else_clause?
@@ -279,7 +316,6 @@ class PythonASTVisitor(PythonParserVisitor):
             orelse=orelse
         )
 
-    # ── For loops ────────────────────────────────────────────────────────────
 
     def visitFor_stmt(self, ctx: PythonParser.For_stmtContext) -> ForStmt:
         # ASYNC? FOR exprlist IN testlist COLON suite else_clause?
@@ -323,8 +359,7 @@ class PythonASTVisitor(PythonParserVisitor):
             async_=async_
         )
 
-    # More visit methods for other node types go here...
-    
+
     # Fallback
     def visitChildren(self, node):
         if not node:

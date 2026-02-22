@@ -214,6 +214,8 @@ Extends ANTLR-generated `PythonParserVisitor`. Maps parse tree context objects t
 | `visitBreak_stmt` | `Break_stmtContext` | `BreakStmt` | Returns `BreakStmt` node directly |
 | `visitContinue_stmt` | `Continue_stmtContext` | `ContinueStmt` | Returns `ContinueStmt` node directly |
 | `visitPass_stmt` | `Pass_stmtContext` | `PassStmt` | Returns `PassStmt` node directly |
+| `visitImport_stmt` | `Import_stmtContext` | `ImportStmt` | Extracts names and `asname` aliases from `dotted_as_names` |
+| `visitFrom_stmt` | `From_stmtContext` | `ImportFromStmt` | Extracts module from `dotted_name` and handles `import_as_names` or wildcard |
 
 **Important behaviours**:
 - Decorators are **not yet implemented** (always empty list)
