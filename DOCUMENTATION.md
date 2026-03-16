@@ -33,7 +33,8 @@ obfuscrypt/
 ├── trajectory.csv                  # Sample vectorizer output (gittracked artifact)
 ├── obfuscrypt_base/
 │   ├── __init__.py                 # Empty
-│   └── ast_nodes.py                # Language-agnostic custom AST node class library
+│   ├── ast_nodes.py                # Language-agnostic custom AST node class library
+│   └── ast_object.py               # Wrapper for AST analysis and variable gathering
 ├── pyparser/
 │   ├── PythonParser.g4             # ANTLR parser grammar for Python 2/3 (387 lines)
 │   ├── PythonLexer.g4              # ANTLR lexer grammar for Python
@@ -167,6 +168,20 @@ Every concrete node inherits from one of these and **overrides `to_dict()`** to 
 | `Arg` | `name: str`, `annotation: Optional[Expression]`. Serialized as `{"name": ..., "annotation": ...}` |
 | `Decorator` | `expression: Expression` |
 | `Alias` | `name: str`, `asname: Optional[str]` — for import statements |
+
+### 4.6 `ASTObject` (`obfuscrypt_base/ast_object.py`)
+
+**Role**: Provides analysis and traversal capabilities by wrapping raw `ASTNode` instances into an object-oriented tree. Every node in `ast_nodes.py` provides a `.get_object()` method that returns an `ASTObject` for that node.
+
+| Method/Property | Description |
+|---|---|
+| `__init__(node, parent, depth)` | Wraps a node, instantiates children as `ASTObject`s, and tracks parent pointers and depth. |
+| `gather_variables()` | Recursively collects all variables (by name and depth) defined within this node and its children. |
+| `is_state_mutation_node()` | Identifies assignments that mutate variable state. |
+| `is_control_flow_node()` | Identifies loops, conditionals, and flow control (`If`, `While`, `Return`, `Break`, `Continue`, etc.). |
+| `is_definition_node()` | Identifies function/class definitions and variable assignments. |
+| `child_nodes` / `child_statements`| Lists of child `ASTObject`s for recursive traversal or transformation. |
+| `distance_from_main_module` | Depth of the node in the AST hierarchy (0 for root layer). |
 
 ---
 
