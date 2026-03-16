@@ -53,26 +53,28 @@ class Location:
     end: Position
 
 class ASTNode:
-    location: Optional[Location] = None
-    
-    def __init__(self, node_type: NodeType, location: Optional[Location] = None):
+    def __init__(self, node_type: NodeType):
         self.node_type = node_type
-        self.location = location
-    
+
+    # Every node should implement this method
     def to_dict(self) -> dict:
-        result = {"type": self.node_type.value}
-        if self.location:
-            result["location"] = {
-                "start": {"line": self.location.start.line, "column": self.location.start.column},
-                "end": {"line": self.location.end.line, "column": self.location.end.column}
-            }
-        return result
+        return {"type": self.node_type.value}
+
+    # Gets ASTObject instance of the node for analysis and transformation
+    def get_object(self):
+        from obfuscrypt_base.ast_object import ASTObject
+        return ASTObject(self)
+        
 
 class Statement(ASTNode):
-    pass
+    def __init__(self, node_type: NodeType):
+        super().__init__(node_type)
+        self.is_statement_node = True
 
 class Expression(ASTNode):
-    pass
+    def __init__(self, node_type: NodeType):
+        super().__init__(node_type)
+        self.is_expression_node = True
 
 @dataclass
 class Module(Statement):
