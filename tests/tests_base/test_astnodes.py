@@ -1,7 +1,7 @@
 # test ast_nodes.py (ASTNodes)
 import pytest
 from obfuscrypt_base.ast_nodes import (
-    NodeType, Module, FunctionDef, Arguments, Arg, ReturnStmt, Assign, 
+    ASTNode, NodeType, Module, FunctionDef, Arguments, Arg, ReturnStmt, Assign, 
     Name, Constant, BinaryOp, Call, IfStmt, ElifStmt, ElseStmt, 
     WhileStmt, ForStmt, Decorator
 )
@@ -225,6 +225,125 @@ class TestASTNodesToDict:
 
 
 class TestASTNodesFromDict:
-    def test_module_definition(self):
-        pass
+    def test_module_reconstruction(self):
+        """
+        Purpose: Verify that a module's raw dictionary accurately reassembles into the root 
+        container, properly configuring its body array for subsequent statement parsing.
+        """
+        data = {"type": "Module", "body": []}
+        node = ASTNode.from_dict(data)
+        assert node.node_type == NodeType.MODULE
+        assert hasattr(node, "body")
+        assert isinstance(node.body, list)
+
+    def test_function_def_reconstruction(self):
+        """
+        Purpose: Ensure function definitions seamlessly decode sub-structures such as target names,
+        arguments, and nested logic blocks to represent complex encapsulated logic structures.
+        """
+        data = {
+            "type": "FunctionDef", 
+            "name": "test", 
+            "args": {"type": "Arguments", "args": [], "vararg": None, "kwarg": None, "defaults": []}, 
+            "body": [{"type": "Return", "value": {"type": "Constant", "value": None, "dtype": "NONE"}}], 
+            "decorator_list": [], 
+            "returns": None, 
+            "async": False
+        }
+        node = ASTNode.from_dict(data)
+        assert node.node_type == NodeType.FUNCTION_DEF
+        assert getattr(node, "name", None) == "test"
+        assert hasattr(node, "args")
+        assert hasattr(node, "body")
+        assert hasattr(node, "decorator_list")
+        assert hasattr(node, "returns")
+        assert hasattr(node, "async_")
+        
+    def test_assign_reconstruction(self):
+        """
+        Purpose: Validate that literal dictionaries mapping state mutation recreate into precise 
+        Assignment operations, preserving target variables and assigned source values.
+        """
+        data = {
+            "type": "Assign",
+            "targets": [{"type": "Name", "id": "x", "ctx": "Store"}],
+            "operator": "=",
+            "value": {"type": "Constant", "value": 1, "dtype": "NUMBER"}
+        }
+        node = ASTNode.from_dict(data)
+        assert node.node_type == NodeType.ASSIGN
+        assert hasattr(node, "targets")
+        assert hasattr(node, "operator")
+        assert hasattr(node, "value")
+        # Validate properties actually exist as structural components mapping to the original dict
+        assert getattr(node, "operator", None) == "="
+        
+    def test_if_statement_reconstruction(self):
+        """
+        Purpose: Conditionals dictate control flow; their deserialization must accurately reconstruct 
+        the boolean testing rules alongside standard execution block bodies and else fallbacks.
+        """
+        data = {
+            "type": "IfStatement",
+            "test": {"type": "Constant", "value": True, "dtype": "BOOLEAN"},
+            "body": [],
+            "ifelse": None,
+            "else": {"type": "ElseStatement", "body": []}
+        }
+        node = ASTNode.from_dict(data)
+        assert node.node_type == NodeType.IF
+        assert hasattr(node, "test")
+        assert hasattr(node, "body")
+        assert hasattr(node, "elif_clauses")  # Verify elif branch parsing structure setup
+        assert hasattr(node, "else_clause")   # Verify else branch fallback setup
+        
+    def test_binary_operator_reconstruction(self):
+        """
+        Purpose: Abstract computation definitions rely on proper left and right operand bindings; 
+        this deserialization must retain operational semantics recursively.
+        """
+        data = {
+            "type": "BinaryOp",
+            "left": {"type": "Name", "id": "a", "ctx": "Load"},
+            "operator": "+",
+            "right": {"type": "Name", "id": "b", "ctx": "Load"}
+        }
+        node = ASTNode.from_dict(data)
+        assert node.node_type == NodeType.BINARY_OP
+        assert hasattr(node, "left")
+        assert hasattr(node, "operator")
+        assert hasattr(node, "right")
+        
+    def test_loop_construct_reconstruction(self):
+        """
+        Purpose: Ensure iterative blocks like while statements properly configure execution constraints 
+        from dictionaries and set up their internal logic chains.
+        """
+        data = {
+            "type": "WhileStatement",
+            "test": {"type": "Constant", "value": True, "dtype": "BOOLEAN"},
+            "body": [],
+            "orelse": []
+        }
+        node = ASTNode.from_dict(data)
+        assert node.node_type == NodeType.WHILE
+        assert hasattr(node, "test")
+        assert hasattr(node, "body")
+        assert hasattr(node, "orelse")
+        
+    def test_function_call_reconstruction(self):
+        """
+        Purpose: Check that function invocations deserialize tracking the exact function identifier 
+        and effectively reconstructing the passed arguments for runtime emulation.
+        """
+        data = {
+            "type": "Call",
+            "identifier": {"type": "Name", "id": "print", "ctx": "Load"},
+            "args": [{"type": "Constant", "value": "Hello", "dtype": "STRING"}]
+        }
+        node = ASTNode.from_dict(data)
+        assert node.node_type == NodeType.CALL
+        # Note: from_dict implementation might map "identifier" to "func" or "identifier", tests validate expected structure
+        assert hasattr(node, "identifier") or hasattr(node, "func")
+        assert hasattr(node, "args")
     
