@@ -1,6 +1,6 @@
 # Obfuscrypt
 
-> Research-grade code obfuscation framework — preserve semantics, hide implementation & logic.
+> Research-grade code obfuscation framework — preserve semantic equivalence, hide implementation & logic.
 
 ## Status
 
