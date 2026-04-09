@@ -117,12 +117,12 @@ Python source code (string)
 ### 4.2 Base Hierarchy
 
 ```
-ASTNode          (base: node_type: NodeType, location: Optional[Location], to_dict())
+ASTNode          (base: node_type: NodeType, location: Optional[Location], to_dict(), from_dict())
   ├── Statement  (marker subclass for statement nodes)
   └── Expression (marker subclass for expression nodes)
 ```
 
-Every concrete node inherits from one of these and **overrides `to_dict()`** to add its specific fields. The serialized dict always begins with `{"type": NodeType.value, ...}`.
+Every concrete node inherits from one of these and **overrides `to_dict()`** to add its specific fields. The serialized dict always begins with `{"type": NodeType.value, ...}`. The base `ASTNode` class also provides a `from_dict(json_data)` class method to reconstruct the node tree from a JSON representation.
 
 ### 4.3 Statement Nodes
 
@@ -130,12 +130,15 @@ Every concrete node inherits from one of these and **overrides `to_dict()`** to 
 |---|---|---|
 | `Module` | `"Module"` | `body: List[Statement]` |
 | `FunctionDef` | `"FunctionDef"` | `name: str`, `args: Arguments`, `body: List[Statement]`, `decorator_list: List[Decorator]`, `returns: Optional[Expression]`, `async_: bool` |
+| `ClassDef` | `"ClassDef"` | `name: str`, `bases: List[Expression]`, `keywords: List[Keyword]`, `body: List[Statement]`, `decorator_list: List[Decorator]` |
 | `Assign` | `"Assign"` | `targets: List[Expression]`, `value: Expression`, `operator: str` (default `"="`) |
 | `IfStmt` | `"IfStatement"` | `test: Expression`, `body: List[Statement]`, `elif_clauses: List[ElifStmt]`, `else_clause: Optional[ElseStmt]` |
 | `ElifStmt` | `"ElifStatement"` | `test: Expression`, `body: List[Statement]` |
 | `ElseStmt` | `"ElseStatement"` | `body: List[Statement]` |
 | `WhileStmt` | `"WhileStatement"` | `test: Expression`, `body: List[Statement]`, `orelse: List[Statement]` |
 | `ForStmt` | `"ForStatement"` | `target: Expression`, `iter: Expression`, `body: List[Statement]`, `orelse: List[Statement]`, `async_: bool` |
+| `TryStmt` | `"TryStatement"` | `body: List[Statement]`, `handlers: List[ASTNode]`, `orelse: List[Statement]`, `finalbody: List[Statement]` |
+| `WithStmt` | `"With"` | `items: List[ASTNode]`, `body: List[Statement]` |
 | `ReturnStmt` | `"Return"` | `value: Optional[Expression]` |
 | `RaiseStmt` | `"Raise"` | `exc: Optional[Expression]`, `cause: Optional[Expression]` |
 | `ImportStmt` | `"Import"` | `names: List[Alias]` |
@@ -150,7 +153,7 @@ Every concrete node inherits from one of these and **overrides `to_dict()`** to 
 |---|---|---|
 | `BinaryOp` | `"BinaryOp"` | `left: Expression`, `operator: str`, `right: Expression` |
 | `UnaryOp` | `"UnaryOp"` | `operator: str`, `operand: Expression` |
-| `Call` | `"Call"` | `identifier: Expression`, `args: List[Expression]` |
+| `Call` | `"Call"` | `identifier: Expression` (or `func`), `args: List[Expression]`, `keywords: List[Keyword]` |
 | `Constant` | `"Constant"` | `value: Any`, `dtype: Optional[str]` (e.g. `"NUMBER"`, `"STRING"`, `"BOOLEAN"`) |
 | `Name` | `"Name"` | `id: str`, `ctx: str` (`"Load"` or `"Store"`) |
 | `Attribute` | `"Attribute"` | `value: Expression`, `attr: str` |
@@ -159,6 +162,7 @@ Every concrete node inherits from one of these and **overrides `to_dict()`** to 
 | `TupleExpr` | `"Tuple"` | `elts: List[Expression]` |
 | `DictExpr` | `"Dict"` | `keys: List[Optional[Expression]]`, `values: List[Expression]` |
 | `SetExpr` | `"Set"` | `elts: List[Expression]` |
+| `Lambda` | `"Lambda"` | `args: Arguments`, `body: Expression` |
 
 ### 4.5 Auxiliary Nodes
 
@@ -166,20 +170,25 @@ Every concrete node inherits from one of these and **overrides `to_dict()`** to 
 |---|---|
 | `Arguments` | `args: List[Arg]`, `vararg: Optional[Arg]`, `kwarg: Optional[Arg]`, `defaults: List[Expression]`. Serialized as flat dict (not wrapped in `type`) |
 | `Arg` | `name: str`, `annotation: Optional[Expression]`. Serialized as `{"name": ..., "annotation": ...}` |
+| `Keyword` | `arg: str`, `value: Expression` (for function calls and class definitions) |
 | `Decorator` | `expression: Expression` |
 | `Alias` | `name: str`, `asname: Optional[str]` — for import statements |
 
 ### 4.6 `ASTObject` (`obfuscrypt_base/ast_object.py`)
 
-**Role**: Provides analysis and traversal capabilities by wrapping raw `ASTNode` instances into an object-oriented tree. Every node in `ast_nodes.py` provides a `.get_object()` method that returns an `ASTObject` for that node.
+**Role**: Provides analysis and traversal capabilities by wrapping raw `ASTNode` instances into an object-oriented tree. Every node in `ast_nodes.py` provides a `.get_object()` method that returns an `ASTObject` for that node. The class instantiates child nodes, child statements, and gathers variables automatically upon initialization.
 
 | Method/Property | Description |
 |---|---|
-| `__init__(node, parent, depth)` | Wraps a node, instantiates children as `ASTObject`s, and tracks parent pointers and depth. |
+| `__init__(node, parent, depth)` | Wraps a node, instantiates children as `ASTObject`s, tracks parent pointers and depth, and automatically gathers variables. |
 | `gather_variables()` | Recursively collects all variables (by name and depth) defined within this node and its children. |
 | `is_state_mutation_node()` | Identifies assignments that mutate variable state. |
-| `is_control_flow_node()` | Identifies loops, conditionals, and flow control (`If`, `While`, `Return`, `Break`, `Continue`, etc.). |
+| `is_control_flow_node()` | Identifies loops, conditionals, and flow control (`If`, `While`, `Return`, `Break`, `Continue`, `Try`, `With`, etc.). |
 | `is_definition_node()` | Identifies function/class definitions and variable assignments. |
+| `is_import_node()` | Identifies module import nodes (`Import`, `ImportFrom`). |
+| `is_call_node()` | Identifies function or method call nodes (`Call`). |
+| `has_body()` | Checks if the node contains a `body` block. |
+| `has_name()` | Checks if the node contains a `name` attribute. |
 | `child_nodes` / `child_statements`| Lists of child `ASTObject`s for recursive traversal or transformation. |
 | `distance_from_main_module` | Depth of the node in the AST hierarchy (0 for root layer). |
 
