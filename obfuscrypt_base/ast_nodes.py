@@ -42,6 +42,53 @@ class NodeType(Enum):
     KEYWORD = "Keyword"
     DECORATOR = "Decorator"
 
+    statement_nodes = [MODULE, FUNCTION_DEF, CLASS_DEF, RETURN, ASSIGN, IF, ELSE, ELIF, WHILE, FOR, TRY, WITH, RAISE, IMPORT, IMPORT_FROM, PASS, BREAK, CONTINUE]
+    expression_nodes = [BINARY_OP, UNARY_OP, CALL, ATTRIBUTE, SUBSCRIPT, NAME, CONSTANT, LIST, TUPLE, DICT, SET, LAMBDA]
+
+
+    def get_node_class_from_string(self, node_type: str):
+        note_type_to_class_map = {
+            "Module": Module(NodeType.MODULE),
+            "FunctionDef": FunctionDef(NodeType.FUNCTION_DEF),
+            "ClassDef": ClassDef(NodeType.CLASS_DEF),
+            "Return": Return(NodeType.RETURN),
+            "Assign": Assign(NodeType.ASSIGN),
+            "If": IfStmt(NodeType.IF),
+            "Else": ElseStmt(NodeType.ELSE),
+            "Elif": ElifStmt(NodeType.ELIF),
+            "While": WhileStmt(NodeType.WHILE),
+            "For": ForStmt(NodeType.FOR),
+            "Try": TryStmt(NodeType.TRY),
+            "With": WithStmt(NodeType.WITH),
+            "Raise": RaiseStmt(NodeType.RAISE),
+            "Import": ImportStmt(NodeType.IMPORT),
+            "ImportFrom": ImportFromStmt(NodeType.IMPORT_FROM),
+            "Pass": PassStmt(NodeType.PASS),
+            "Break": BreakStmt(NodeType.BREAK),
+            "Continue": ContinueStmt(NodeType.CONTINUE),
+            "BinaryOp": BinaryOp(NodeType.BINARY_OP),
+            "UnaryOp": UnaryOp(NodeType.UNARY_OP),
+            "Call": Call(NodeType.CALL),
+            "Attribute": Attribute(NodeType.ATTRIBUTE),
+            "Subscript": Subscript(NodeType.SUBSCRIPT),
+            "Name": Name(NodeType.NAME),
+            "Constant": Constant(NodeType.CONSTANT),
+            "List": List(NodeType.LIST),
+            "Tuple": Tuple(NodeType.TUPLE),
+            "Dict": Dict(NodeType.DICT),
+            "Set": Set(NodeType.SET),
+            "Lambda": Lambda(NodeType.LAMBDA),
+            "Arguments": Arguments(NodeType.ARGUMENTS),
+            "Keyword": Keyword(NodeType.KEYWORD),
+            "Decorator": Decorator(NodeType.DECORATOR),
+        }
+
+        if node_type in note_type_to_class_map:
+            return note_type_to_class_map[node_type]
+        else:
+            raise ValueError(f"Unknown node type: {node_type}")
+
+
 @dataclass
 class Position:
     line: int
@@ -55,15 +102,134 @@ class Location:
 class ASTNode:
     def __init__(self, node_type: NodeType):
         self.node_type = node_type
+    
+    @classmethod
+    def from_dict(cls, json_data: dict):
+        """
+        Reconstructs the AST node from a dictionary
+        """
+        node = NodeType.get_node_from_string(json_data["type"])
+        if json_data["Type"] == "Module":
+            node.body = [ASTNode.from_dict(stmt) for stmt in json_data["body"]]
+        elif json_data["Type"] == "FunctionDef":
+            node.name = json_data["name"]
+            node.args = ASTNode.from_dict(json_data["args"])
+            node.body = [ASTNode.from_dict(stmt) for stmt in json_data["body"]]
+            node.decorator_list = [ASTNode.from_dict(dec) for dec in json_data["decorator_list"]]
+            node.returns = ASTNode.from_dict(json_data["returns"])
+            node.async_ = json_data["async"]
+        elif json_data["Type"] == "ClassDef":
+            node.name = json_data["name"]
+            node.bases = [ASTNode.from_dict(base) for base in json_data["bases"]]
+            node.keywords = [ASTNode.from_dict(keyword) for keyword in json_data["keywords"]]
+            node.body = [ASTNode.from_dict(stmt) for stmt in json_data["body"]]
+            node.decorator_list = [ASTNode.from_dict(dec) for dec in json_data["decorator_list"]]
+        elif json_data["Type"] == "Return":
+            node.value = ASTNode.from_dict(json_data["value"])
+        elif json_data["Type"] == "Assign":
+            node.targets = [ASTNode.from_dict(target) for target in json_data["targets"]]
+            node.value = ASTNode.from_dict(json_data["value"])
+        elif json_data["Type"] == "If":
+            node.test = ASTNode.from_dict(json_data["test"])
+            node.body = [ASTNode.from_dict(stmt) for stmt in json_data["body"]]
+            node.orelse = [ASTNode.from_dict(stmt) for stmt in json_data["orelse"]]
+        elif json_data["Type"] == "While":
+            node.test = ASTNode.from_dict(json_data["test"])
+            node.body = [ASTNode.from_dict(stmt) for stmt in json_data["body"]]
+            node.orelse = [ASTNode.from_dict(stmt) for stmt in json_data["orelse"]]
+        elif json_data["Type"] == "For":
+            node.target = ASTNode.from_dict(json_data["target"])
+            node.iter = ASTNode.from_dict(json_data["iter"])
+            node.body = [ASTNode.from_dict(stmt) for stmt in json_data["body"]]
+            node.orelse = [ASTNode.from_dict(stmt) for stmt in json_data["orelse"]]
+        elif json_data["Type"] == "Try":
+            node.body = [ASTNode.from_dict(stmt) for stmt in json_data["body"]]
+            node.handlers = [ASTNode.from_dict(handler) for handler in json_data["handlers"]]
+            node.orelse = [ASTNode.from_dict(stmt) for stmt in json_data["orelse"]]
+            node.finalbody = [ASTNode.from_dict(stmt) for stmt in json_data["finalbody"]]
+        elif json_data["Type"] == "With":
+            node.items = [ASTNode.from_dict(item) for item in json_data["items"]]
+            node.body = [ASTNode.from_dict(stmt) for stmt in json_data["body"]]
+        elif json_data["Type"] == "Raise":
+            node.exc = ASTNode.from_dict(json_data["exc"])
+            node.cause = ASTNode.from_dict(json_data["cause"])
+        elif json_data["Type"] == "Import":
+            node.names = [ASTNode.from_dict(name) for name in json_data["names"]]
+        elif json_data["Type"] == "ImportFrom":
+            node.module = json_data["module"]
+            node.names = [ASTNode.from_dict(name) for name in json_data["names"]]
+            node.level = json_data["level"]
+        elif json_data["Type"] == "Pass":
+            pass
+        elif json_data["Type"] == "Break":
+            pass
+        elif json_data["Type"] == "Continue":
+            pass
+        elif json_data["Type"] == "BinaryOp":
+            node.left = ASTNode.from_dict(json_data["left"])
+            node.op = ASTNode.from_dict(json_data["op"])
+            node.right = ASTNode.from_dict(json_data["right"])
+        elif json_data["Type"] == "UnaryOp":
+            node.op = ASTNode.from_dict(json_data["op"])
+            node.operand = ASTNode.from_dict(json_data["operand"])
+        elif json_data["Type"] == "Call":
+            node.func = ASTNode.from_dict(json_data["func"])
+            node.args = [ASTNode.from_dict(arg) for arg in json_data["args"]]
+            node.keywords = [ASTNode.from_dict(keyword) for keyword in json_data["keywords"]]
+        elif json_data["Type"] == "Attribute":
+            node.value = ASTNode.from_dict(json_data["value"])
+            node.attr = json_data["attr"]
+        elif json_data["Type"] == "Subscript":
+            node.value = ASTNode.from_dict(json_data["value"])
+            node.slice = ASTNode.from_dict(json_data["slice"])
+        elif json_data["Type"] == "Name":
+            node.id = json_data["id"]
+            node.ctx = ASTNode.from_dict(json_data["ctx"])
+        elif json_data["Type"] == "Constant":
+            node.value = json_data["value"]
+        elif json_data["Type"] == "List":
+            node.elts = [ASTNode.from_dict(elt) for elt in json_data["elts"]]
+        elif json_data["Type"] == "Tuple":
+            node.elts = [ASTNode.from_dict(elt) for elt in json_data["elts"]]
+        elif json_data["Type"] == "Dict":
+            node.keys = [ASTNode.from_dict(key) for key in json_data["keys"]]
+            node.values = [ASTNode.from_dict(value) for value in json_data["values"]]
+        elif json_data["Type"] == "Set":
+            node.elts = [ASTNode.from_dict(elt) for elt in json_data["elts"]]
+        elif json_data["Type"] == "Lambda":
+            node.args = ASTNode.from_dict(json_data["args"])
+            node.body = ASTNode.from_dict(json_data["body"])
+        elif json_data["Type"] == "Arguments":
+            node.args = [ASTNode.from_dict(arg) for arg in json_data["args"]]
+            node.vararg = ASTNode.from_dict(json_data["vararg"])
+            node.kwarg = ASTNode.from_dict(json_data["kwarg"])
+            node.defaults = [ASTNode.from_dict(default) for default in json_data["defaults"]]
+        elif json_data["Type"] == "Keyword":
+            node.arg = json_data["arg"]
+            node.value = ASTNode.from_dict(json_data["value"])
+        elif json_data["Type"] == "Decorator":
+            node.value = ASTNode.from_dict(json_data["value"])  
+        return node
 
     # Every node should implement this method
     def to_dict(self) -> dict:
         return {"type": self.node_type.value}
 
+        
+    
+
     # Gets ASTObject instance of the node for analysis and transformation
     def get_object(self):
         from obfuscrypt_base.ast_object import ASTObject
         return ASTObject(self)
+    
+    def get_from_json(self, json_data: dict):
+        """
+        Reconstructs the AST node from a dictionary
+        """
+        self.node_type = self.get_node_type_from_string(json_data["type"])
+    
+        
         
 
 class Statement(ASTNode):
@@ -71,10 +237,14 @@ class Statement(ASTNode):
         super().__init__(node_type)
         self.is_statement_node = True
 
+
+
 class Expression(ASTNode):
     def __init__(self, node_type: NodeType):
         super().__init__(node_type)
         self.is_expression_node = True
+
+
 
 @dataclass
 class Module(Statement):
@@ -85,6 +255,8 @@ class Module(Statement):
         result = super().to_dict()
         result["body"] = [stmt.to_dict() for stmt in self.body]
         return result
+
+    
 
 @dataclass
 class FunctionDef(Statement):
